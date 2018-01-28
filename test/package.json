@@ -1,0 +1,12 @@
+{
+  "name": "chrome-plugin-test",
+  "version": "1.0.0",
+  "main": "server.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "open http://localhost:3000/ && node server.js"
+  },
+  "dependencies": {
+    "express": "^4.16.2"
+  }
+}

@@ -1,0 +1,18 @@
+body {
+	font-family: Tahoma, Geneva, sans-serif;
+	font-size: 12px;
+	color: #222;
+}
+
+.clear {
+	clear: both;
+}
+
+h1 {
+	font-size: 16px;
+}
+
+.main {
+	width: 300px;
+}
+
