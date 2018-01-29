@@ -5,10 +5,19 @@
   <script type="text/javascript" src="js/popup.js"></script>
 </head>
 <body>
+  <h1>Swagger JWT</h1>
   <div class="main">
-    <h1>Swagger JWT</h1>
-    <div class="content">
-      <p>Token auth for <span class="current-page"></span></p>
+    <div id="add-auth">
+      <p>Add auth for this page:</p>
+      <input type="text" placeholder="JTW request url" />
+      <div class="settings"><a href="#">Settings</a></div>
+      <div class="submit"><button>Save</button></div>
+    </div>
+    <div id="update-auth">
+      <p>Update auth for this page:</p>
+      <input type="text" placeholder="JTW request url" />
+      <div class="settings"><a href="#">Settings</a></div>
+      <div class="submit"><button>Update</button></div>
     </div>
   </div>
 </body>

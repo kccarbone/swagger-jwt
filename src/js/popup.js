@@ -2,26 +2,56 @@ let background = null;
 let preferences = null;
 let page = null;
 
-const init = function () {
-  $('.current-page').text(page.url);
+const saveAuth = function () {
+  const newValue = $('input:visible').val();
+  const newPage = page.url
+    .replace(/^https?:/, '.*')
+    .replace(/\/swagger\/.*$/, '/swagger/.*');
+  
+  background.setPageAuthpoint(newPage, newValue);
+  window.close();
+}
+
+const init = function (savedPage) {
+  const $divCreate = $('#add-auth');
+  const $divUpdate = $('#update-auth');
+  const $inputs = $('input');
+  const $btnSubmit = $('.submit button');
+  
+  if (savedPage) {
+    $divCreate.hide();
+    $divUpdate.show()
+      .find('input')
+      .val(savedPage.auth);
+  }
+
+  $('.settings a').on('click', () => {
+    chrome.tabs.create({ url: chrome.extension.getURL('settings.html') });
+	});
+
+  $btnSubmit.on('click', saveAuth);
+  $inputs.on('keydown', e => {
+    if (e.which === 13) {
+      saveAuth();
+    }
+  });
 };
 
-const getCurrentPage = function (callback) {
-  chrome.tabs.query({
-    currentWindow: true,
-    active: true
-  }, function (tabs) {
-    callback(tabs[0]);
+const getCurrentPage = function () {
+  return new Promise(resolve => {
+    chrome.tabs.query({
+      currentWindow: true,
+      active: true
+    }, tabs => resolve(tabs[0]));  
   });
 };
 
 $(function () {
-  background = chrome.extension.getBackgroundPage();
-  background.getPrefs(function (result) {
-    preferences = result;
-    getCurrentPage(function (currentPage) {
+  getCurrentPage()
+    .then(currentPage => {
+      background = chrome.extension.getBackgroundPage();
       page = currentPage;
-      init();
+      return background.getPageAuthpoint(page.url);
     })
-  });
+    .then(savedPage => init(savedPage));
 });

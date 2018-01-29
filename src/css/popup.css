@@ -1,7 +1,14 @@
-body {
-	font-family: Tahoma, Geneva, sans-serif;
+html {
+	margin: 0;
+	height: 120px;
+}
+
+html, body {
+	font-family: Arial, Helvetica, sans-serif;
 	font-size: 12px;
-	color: #222;
+	color: #333;
+	background-color: #f3f3f3;
+	margin: 0;
 }
 
 .clear {
@@ -9,10 +16,64 @@ body {
 }
 
 h1 {
-	font-size: 16px;
-}
-
-.main {
+	font-family: Tahoma, Geneva, sans-serif;
+	font-size: 15px;
+	font-weight: bold;
+	color: #fff;
+	background-color: #c91f00;
+	padding: 5px 10px;
+	margin: 0;
 	width: 300px;
 }
 
+.main {
+	margin: 12px 10px;
+}
+
+.main p {
+	font-size: 13px;
+	font-weight: bold;
+	margin: 0;
+	padding: 0 2px;
+}
+
+.main input {
+	font-size: 12px;
+	color: #333;
+	background-color: #fff;
+	border: solid 1px #ccc;
+	outline: none;
+	margin: 5px 0;
+	padding: 3px 5px;
+	width: 100%;
+	transition: all 200ms ease-out;
+}
+
+.main input:focus {
+	background-color: #fff3e3;
+}
+
+.main .submit {
+	text-align: right;
+}
+
+.main .submit button {
+	display: inline-block;
+	padding: 3px 5px;
+	width: 50px;
+}
+
+.main .settings {
+	float: left;
+}
+
+.main .settings a {
+	color: #aaa;
+	text-decoration: none;
+	line-height: 22px;
+	padding: 0 2px;
+}
+
+.main #update-auth {
+	display: none;
+}
