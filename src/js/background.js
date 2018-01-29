@@ -7,11 +7,9 @@ window.getPrefs = function () {
         if (!result) {
           result = {};
         }
-        if (!result.headerPrefix) {
-          result.headerPrefix = 'Bearer';
-        }
         if (!result.prefs) {
           result.prefs = { 
+            headerPrefix: 'Bearer',
             authpoints: []
           }
         }
@@ -43,6 +41,11 @@ window.setPrefs = function (prefs) {
   chrome.storage.sync.set({
     'prefs': prefs
   });
+};
+
+window.setHeaderPrefix = function (newPrefix) {
+  cachedPrefs.headerPrefix = newPrefix;
+  window.setPrefs(cachedPrefs);
 };
 
 window.setPageAuthpoint = function (pageUrl, auth) {
