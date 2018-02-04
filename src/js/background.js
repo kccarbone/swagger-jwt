@@ -10,6 +10,7 @@ window.getPrefs = function () {
         if (!result.prefs) {
           result.prefs = { 
             headerPrefix: 'Bearer',
+            fieldSelector: '#Auth',
             authpoints: []
           }
         }
@@ -29,43 +30,68 @@ window.getHeaderPrefix = function () {
     .then(prefs => prefs.headerPrefix);
 };
 
+window.getFieldSelector = function () {
+  return window.getPrefs()
+    .then(prefs => prefs.fieldSelector);
+};
+
 window.getPageAuthpoint = function (pageUrl) {
   return window.getPrefs()
-    .then(prefs => prefs.authpoints
-      .find(x => new RegExp(x.page).test(pageUrl))
-    );
+    .then(prefs => prefs.authpoints.findPage(pageUrl));
 };
 
 window.setPrefs = function (prefs) {
-  cachedPrefs = prefs;
-  chrome.storage.sync.set({
-    'prefs': prefs
+  return new Promise(resolve => {
+    cachedPrefs = prefs;
+    chrome.storage.sync.set({
+      'prefs': prefs
+    }, resolve);
   });
 };
 
 window.setHeaderPrefix = function (newPrefix) {
   cachedPrefs.headerPrefix = newPrefix;
-  window.setPrefs(cachedPrefs);
+  return window.setPrefs(cachedPrefs);
+};
+
+window.setFieldSelector = function (newSelector) {
+  cachedPrefs.fieldSelector = newSelector;
+  return window.setPrefs(cachedPrefs);
 };
 
 window.setPageAuthpoint = function (pageUrl, auth) {
-  let existing = cachedPrefs.authpoints
-    .find(x => new RegExp(x.page).test(pageUrl));
-  
+  if (!auth || !auth.trim()) {
+    return window.removePageAuthpoint(pageUrl);
+  }
+
+  let existing = cachedPrefs.authpoints.findPage(pageUrl);
+
   if (!existing) {
     cachedPrefs.authpoints.push({ page: pageUrl });
     existing = cachedPrefs.authpoints[cachedPrefs.authpoints.length - 1];
   }
 
-  if (!auth || !auth.trim()) {
-    cachedPrefs.authpoints.splice(cachedPrefs.authpoints.indexOf(existing), 1);
+  existing.auth = auth;
+  return window.setPrefs(cachedPrefs);
+};
+
+window.removePageAuthpoint = function (pageUrl) {
+  const pageRecord = cachedPrefs.authpoints.findPage(pageUrl);
+
+  if (pageRecord) {
+    cachedPrefs.authpoints.splice(cachedPrefs.authpoints.indexOf(pageRecord), 1);
   }
 
-  existing.auth = auth;
-  window.setPrefs(cachedPrefs);
+  return window.setPrefs(cachedPrefs);
 };
 
 window.clearPrefs = function () {
   cachedPrefs = false;
   chrome.storage.sync.remove('prefs');
+};
+
+Array.prototype.findPage = function (pageUrl) {
+  const match = x => new RegExp(`^${x.replace(/\*/g, '.*')}$`);
+
+  return this.find(x => match(x.page).test(pageUrl));
 };

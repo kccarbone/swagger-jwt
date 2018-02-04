@@ -5,8 +5,8 @@ let page = null;
 const saveAuth = function () {
   const newValue = $('input:visible').val();
   const newPage = page.url
-    .replace(/^https?:/, '.*')
-    .replace(/\/swagger\/.*$/, '/swagger/.*');
+    .replace(/^https?:/, '*')
+    .replace(/\/swagger\/.*$/, '/swagger/*');
   
   background.setPageAuthpoint(newPage, newValue);
   window.close();

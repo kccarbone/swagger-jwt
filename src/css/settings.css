@@ -19,6 +19,7 @@ h1 {
   font-weight: bold;
   margin-top: 0;
   color: #999;
+  display: inline-block;
 }
 
 h2 {
@@ -93,4 +94,11 @@ table svg.fa-plus {
 table .new-row input {
   margin: 0;
   width: 100%;
+}
+
+.saved {
+  color: #091;
+  margin: 5px;
+  float: right;
+  display: none;
 }
