@@ -1,5 +1,8 @@
+// In-memory cache of stored preferences
 let cachedPrefs;
+let bootstrapped = [];
 
+// Public methods
 window.getPrefs = function () {
   return new Promise(resolve => {
     if(!cachedPrefs) {
@@ -10,7 +13,7 @@ window.getPrefs = function () {
         if (!result.prefs) {
           result.prefs = { 
             headerPrefix: 'Bearer',
-            fieldSelector: '#Auth',
+            fieldSelector: '.auth-header',
             authpoints: []
           }
         }
@@ -72,7 +75,8 @@ window.setPageAuthpoint = function (pageUrl, auth) {
   }
 
   existing.auth = auth;
-  return window.setPrefs(cachedPrefs);
+  return window.setPrefs(cachedPrefs)
+    .then(() => window.refreshTabs(pageUrl, true));
 };
 
 window.removePageAuthpoint = function (pageUrl) {
@@ -82,7 +86,8 @@ window.removePageAuthpoint = function (pageUrl) {
     cachedPrefs.authpoints.splice(cachedPrefs.authpoints.indexOf(pageRecord), 1);
   }
 
-  return window.setPrefs(cachedPrefs);
+  return window.setPrefs(cachedPrefs)
+    .then(() => window.refreshTabs(pageUrl));
 };
 
 window.clearPrefs = function () {
@@ -90,8 +95,75 @@ window.clearPrefs = function () {
   chrome.storage.sync.remove('prefs');
 };
 
-Array.prototype.findPage = function (pageUrl) {
-  const match = x => new RegExp(`^${x.replace(/\*/g, '.*')}$`);
+// Re-bootstrap affected tabs when pref changes
+window.refreshTabs = function (pageUrl, createNew) {
+  return new Promise(resolve => {
+    chrome.tabs.query({}, resolve);
+  })
+  .then(tabs => {
+    const regex = new RegExp(`^${pageUrl.replace(/\*/g, '.*')}$`);
+    const existing = x => bootstrapped.indexOf(x.id) >= 0;
 
-  return this.find(x => match(x.page).test(pageUrl));
+    if (createNew) {
+      tabs.filter(x => regex.test(x.url) && !existing(x))
+        .forEach(x => bootstrapTab(x.id));
+    }
+    else {
+      tabs.filter(x => regex.test(x.url) && existing(x))
+        .forEach(x => {
+          bootstrapped.splice(bootstrapped.indexOf(x.id), 1);
+          chrome.tabs.reload(x.id);
+        });
+    }
+  });
 };
+
+window.injectScript = function (tabId, file) {
+  return new Promise(resolve => {
+    chrome.tabs.executeScript(tabId, { file }, resolve);
+  });
+};
+
+window.injectStyles = function (tabId, file) {
+  return new Promise(resolve => {
+    chrome.tabs.insertCSS(tabId, { file }, resolve);
+  });
+};
+
+window.bootstrapTab = function (tabId) {
+  if (bootstrapped.indexOf(tabId) < 0) {
+    bootstrapped.push(tabId);
+  }
+
+  window.injectScript(tabId, 'js/jquery.js')
+    .then(() => window.injectStyles(tabId, 'css/content.css'))
+    .then(() => window.injectScript(tabId, 'js/content.js'));
+};
+
+// Inject scripts in matching pages
+chrome.tabs.onUpdated.addListener((id, change, tab) => {
+  if ((change.status || '') === 'complete'
+    && cachedPrefs.authpoints.findPage(tab.url)) {
+    window.bootstrapTab(id);
+  }
+});
+
+// Respond to page requests for latest preferences
+chrome.runtime.onMessage.addListener((msg, sender, respond) => {
+  if (msg === 'getPreferences') {
+    const page = cachedPrefs.authpoints.findPage(sender.url || '');
+
+    respond(page && { ...cachedPrefs, auth: page.auth });
+  }  
+});
+
+// Array extensions
+Array.prototype.findPage = function (pageUrl, selector) {
+  const match = x => new RegExp(`^${x.replace(/\*/g, '.*')}$`);
+  selector = selector || (x => x.page);
+
+  return this.find(x => match(selector(x)).test(pageUrl));
+};
+
+// Init
+window.getPrefs();

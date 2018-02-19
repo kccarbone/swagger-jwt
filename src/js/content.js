@@ -1,13 +1,17 @@
-let authpointUrl = null;
-
 const fillAuth = function () {
   let $tbTarget = $(this);
-  $tbTarget.hide();
+
+  getPrefs().then(prefs => {
+    $tbTarget.val(`${prefs.headerPrefix} ${prefs.auth}`);
+  });
 };
 
-const init = function () {
-  $('.auth-header').each(function () {
-    let $tbTarget = $(this).find('input');
+const init = function (prefs) {
+  $(prefs.fieldSelector).each(function () {
+    let $tbTarget = $(this)
+      .find('input')
+      .addClass('jwt-target');
+    
     $('<button />')
       .text('Auth')
       .addClass('extention-auth-refresh')
@@ -16,10 +20,15 @@ const init = function () {
   });
 };
 
-$(function () {
-  chrome.storage.sync.get('prefs', function (result) {
-    console.log('current prefs', result);
-    authpointUrl = 'test';
-    init();
+const getPrefs = function () {
+  return new Promise(resolve => {
+    chrome.runtime.sendMessage(
+      chrome.runtime.id,
+      'getPreferences',
+      prefs => resolve(prefs));
   });
+};
+
+$(function () {
+  getPrefs().then(init);
 });
