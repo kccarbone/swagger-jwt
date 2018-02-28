@@ -60,11 +60,12 @@ h1 {
 .main .submit button {
 	display: inline-block;
 	padding: 3px 5px;
-	width: 50px;
+	width: 70px;
 }
 
 .main .settings {
 	float: left;
+	margin-top: 5px;
 }
 
 .main .settings a {
@@ -72,6 +73,10 @@ h1 {
 	text-decoration: none;
 	line-height: 22px;
 	padding: 0 2px;
+}
+
+.main .settings a:hover {
+	color: #777;
 }
 
 .main #update-auth {
