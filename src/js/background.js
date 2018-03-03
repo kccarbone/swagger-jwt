@@ -13,7 +13,7 @@ window.getPrefs = function () {
         if (!result.prefs) {
           result.prefs = { 
             headerPrefix: 'Bearer',
-            fieldSelector: '.auth-header',
+            fieldSelector: 'input[name=Authorization]',
             authpoints: []
           }
         }
@@ -102,18 +102,14 @@ window.refreshTabs = function (pageUrl, createNew) {
   })
   .then(tabs => {
     const regex = new RegExp(`^${pageUrl.replace(/\*/g, '.*')}$`);
-    const existing = x => bootstrapped.indexOf(x.id) >= 0;
 
     if (createNew) {
-      tabs.filter(x => regex.test(x.url) && !existing(x))
+      tabs.filter(x => regex.test(x.url))
         .forEach(x => bootstrapTab(x.id));
     }
     else {
-      tabs.filter(x => regex.test(x.url) && existing(x))
-        .forEach(x => {
-          bootstrapped.splice(bootstrapped.indexOf(x.id), 1);
-          chrome.tabs.reload(x.id);
-        });
+      tabs.filter(x => regex.test(x.url))
+        .forEach(x => chrome.tabs.reload(x.id));
     }
   });
 };
@@ -131,10 +127,6 @@ window.injectStyles = function (tabId, file) {
 };
 
 window.bootstrapTab = function (tabId) {
-  if (bootstrapped.indexOf(tabId) < 0) {
-    bootstrapped.push(tabId);
-  }
-
   window.injectScript(tabId, 'js/jquery.js')
     .then(() => window.injectStyles(tabId, 'css/content.css'))
     .then(() => window.injectScript(tabId, 'js/content.js'));
